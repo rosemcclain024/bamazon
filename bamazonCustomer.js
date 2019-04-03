@@ -63,23 +63,24 @@ function select() {
 
         .then(function (response) {
 
-            var itemPurchase = parseInt(response.itemPurchase);
+            var itemPurchase = parseInt(response.purchase);
             //parseInt to make sure it's a number so that when we go to do math it actually works
-            var purchasedQuantity = parseInt(response.purchasedQuantity);
+            var purchasedQuantity = parseInt(response.quantity);
 
-            var itemConv = parseInt(response.itemPurchase - 1);
+            var itemConv = parseInt(response.purchase - 1);
 
-            console.log(itemPurchase);
-            console.log(response);
+            
+            // console.log(response.purchase);
+            // console.log(itemPurchase);
 
             connection.query('SELECT * FROM products', function(err, res) {
+                if (err) throw err;
+                var pId = response.purchase;
+                var total = res[itemConv].price * purchasedQuantity;
                 if (res[itemConv].stock_quantity >= purchasedQuantity) {
-
-                    // connection.query('SELECT * FROM products', function(err, res) {
-                        console.log(res);
-                        if (err) throw err;
-                        console.log(itemPurchase);
-                        console.log(res[itemConv].product_name);
+                    console.log("Your total comes to: " + total);
+                    // connection.query('SELECT * FROM products', function(err, res) { 
+                        // console.log(res[itemConv].product_name);
                         var sql = "UPDATE products SET ? WHERE ?";
                         var data = [
                             {
@@ -87,15 +88,15 @@ function select() {
                             },
 
                             {
-                                item_id: response.itemPurchase
+                                item_id: response.purchase
                             }];
                         
                         connection.query(sql, data, function(err, res) {
                             if(err) throw err;
 
-                            console.log("success !!1!!!11!");
-
-                            connection(destroy);
+                            // console.log("success !!1!!!11!");
+                            askAgain();
+                            // connection(destroy);
                         });
 
                  
@@ -103,13 +104,38 @@ function select() {
                     } else {
                         console.log("sorry!! insufficient inventory!");
                         select();
+                       
+
+
             }
+
         });
 
     });
 
 }
 
+function askAgain() {
+    inquirer
+        .prompt ([
+            {
+                name: "ask",
+                type: "confirm",
+                message: "Would you like to purchase something else?"
+            }
+
+        ])
+        .then(function(valuesOfPrompted) {
+            if(valuesOfPrompted.ask) {
+                select();
+            }
+            else {
+                console.log("Thanks! See you soon.");
+                connection.destroy();
+            }
+        });
+        
+    }
 
 
 
@@ -122,29 +148,5 @@ function select() {
 
 
 
-// connection.query('SELECT * FROM `products`' [purchase], function (err, res) {
-            //     if (err) throw err;
-                
-            //     console.log(res[0].stock_quantity);
-                
-            //     z = (parseInt(fields[0].stock_quantity) - second);
-            //     cost = ((parseInt(fields[0].price)) * second);
-                
-                
-            //     if (z > 0) {
-            //         var sql = "UPDATE `products` SET ? WHERE ?";
-            //         var data = [{
-            //             stock_quantity: fields[first].stock_quantity) - second)
-            //         }]
-                         
-            //         connection.query("UPDATE `products` SET `stock_quantity` '" + z + "' WHERE `item_id` + " + first, function(err, results) {
-            //             console.log("Your purchase today cost $" + cost + ".");
-            //             connection.end();
-            //         });
-            //     }
-            //     else {
-            //         console.log("Sorry! Insufficient stock!");
-            //         connection.end();
-            //     }
 
-            // });
+
